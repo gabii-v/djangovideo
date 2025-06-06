@@ -1,10 +1,16 @@
 #from django.shortcuts import render
-from django.http import HttpResponse
+import json
+
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from datetime import date
 from django.template import Template, Context
 from django.template.loader import get_template
 from django.shortcuts import render
 from .models import Musician, Album
+from .serializers import PersonaSerializer, PersonSerializer
+from .models import Person
+
 
 # Create your views here.
 def nuevoHello(request): 
@@ -91,3 +97,82 @@ def crear_albun(request, nombre, estrellas, artista_id):
     mensaje = "Se creó el Albun %s del Artista %s con id %d"%(albun.name, art.last_name, albun.id)
 
     return HttpResponse(mensaje)
+
+@csrf_exempt
+def first_api(request):
+    if request.method == 'GET': 
+        respuesta = {
+            'nombre': 'Juan',
+            'apellido': 'Perez',
+            'edad': 25
+        }
+        return JsonResponse(respuesta)
+    elif request.method == 'POST':
+        datos = json.loads(request.body)
+        nombre = datos['nombre']
+        apellido = datos['apellido']
+        edad = datos['edad']
+        respuesta = {
+            'nombre2': nombre,
+            'apellido2': apellido,
+            'edad2': edad
+        }
+        return JsonResponse(respuesta)
+    return None
+
+@csrf_exempt
+def serialv1(request):
+    if request.method == 'POST':
+        datos = json.loads(request.body)
+        serializador = PersonaSerializer(data=datos)
+        if serializador.is_valid():
+            return JsonResponse(serializador.validated_data, status=201)
+        else:
+            return JsonResponse(serializador.errors, status=400)
+                    
+    return None
+
+@csrf_exempt
+def person_list(request):
+
+    if request.method == 'GET':
+        personas = Person.objects.all()
+        serializer = PersonSerializer(personas, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    if request.method == 'POST':
+        datos = json.loads(request.body)
+        serializer = PersonSerializer(data=datos)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.data, status=400)
+    
+    return None
+
+
+@csrf_exempt
+def person_detail(request, pk):
+
+    if request.method == 'GET':
+        persona = Person.objects.get(pk=pk)
+        serializer = PersonSerializer(persona)
+        return JsonResponse(serializer.data, safe=False)
+    
+    if request.method == 'PUT':
+        datos = json.loads(request.body)
+        persona = Person.objects.get(pk=pk)
+        serializer = PersonSerializer(persona, data=datos)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.data, status=400)
+        
+    if request.method == 'DELETE':
+        persona = Person.objects.get(pk=pk)
+        persona.delete()
+        return HttpResponse(status=204)
+    
+    return None
