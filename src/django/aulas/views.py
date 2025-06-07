@@ -1,7 +1,7 @@
 #from django.shortcuts import render
 import json
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
 from django.template import Template, Context
@@ -10,6 +10,13 @@ from django.shortcuts import render
 from .models import Musician, Album
 from .serializers import PersonaSerializer, PersonSerializer
 from .models import Person
+
+from rest_framework import status
+from rest_framework.decorators import permission_classes
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import mixins
+from rest_framework import generics
 
 
 # Create your views here.
@@ -176,3 +183,92 @@ def person_detail(request, pk):
         return HttpResponse(status=204)
     
     return None
+
+
+class PersonAPIView(APIView):
+    #
+    #LIST ALL PERSONS, OR CREATE A NEW PERSON.
+    #
+
+    def get(self, request, format=None):
+        persons = Person.objects.all()
+        serializer = PersonSerializer(persons, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request, format=None):
+        serializer = PersonSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PersonAPIDetail(APIView):
+    #
+    #retribe, update or delete a person instance
+    #
+    def get_object(self, pk):
+        try:
+            return Person.objects.get(pk=pk)
+        except Person.DoesNotExist:
+            raise Http404
+    
+    def get(self, request,pk, format=None):
+        person = self.get_object(pk)
+        serializer = PersonSerializer(person)
+        return Response(serializer.data)
+    
+    def put(self, request,pk, format=None):
+        person = self.get_object(pk)
+        serializer = PersonSerializer(person, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request,pk, format=None):
+        person = self.get_object(pk)
+        person.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class PersonMixinList(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    generics.GenericAPIView
+):
+    queryset = Person.objects.all()
+    serializer_class = PersonSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class PersonMixinDetail(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView
+):
+    queryset = Person.objects.all()
+    serializer_class = PersonSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+    
+##DRY!!!! please!
+
+class PersonList(generics.ListCreateAPIView):
+    queryset = Person.objects.all()
+    serializer_class = PersonSerializer
+
+class PersonDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Person.objects.all()
+    serializer_class = PersonSerializer
+
