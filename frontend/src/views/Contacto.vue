@@ -1,6 +1,6 @@
 <template>
     <div class="contact-container">
-        <h2>Contáctanos - Página en construcción</h2>
+        <h2>Contáctanos</h2>
         <p>¿Tienes alguna pregunta o sugerencia? Completa el siguiente formulario y te responderemos lo antes posible.
         </p>
 

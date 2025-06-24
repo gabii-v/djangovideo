@@ -1,11 +1,12 @@
 
 services:
   backend:
-    image: videobackend:0.5
+    image: videobackend:0.6
     build:
       context: ./config/django-image
     volumes:
       - ./src/django:/usr/src/app:delegated
+
     environment:
       DB_HOST: ${DB_HOST}
       POSTGRES_USER: ${POSTGRES_USER}

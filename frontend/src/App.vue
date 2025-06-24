@@ -7,9 +7,20 @@
         <router-link to="/">Inicio</router-link>
         <router-link to="/tienda">Tienda</router-link>
         <router-link to="/contacto">Contacto</router-link>
-        <router-link to="/IniciarSesión"> MiCuenta</router-link>
+        <router-link to="/IniciarSesión">MiCuenta</router-link>
         <router-link to="/mensajes" class="icon-link">💬</router-link>
         <router-link to="/mis-compras" class="icon-link">🛒</router-link>
+
+        <!-- Menú desplegable de usuario -->
+        <div class="dropdown" @mouseleave="mostrarMenu = false">
+          <button @click="mostrarMenu = !mostrarMenu" class="dropdown-btn icon-link" aria-label="Usuario">
+            👤
+          </button>
+          <div v-if="mostrarMenu" class="dropdown-menu">
+            <router-link to="/usuario" @click="mostrarMenu = false">Información de Usuario</router-link>
+            <button @click="cerrarSesion">Cerrar sesión</button>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -33,6 +44,22 @@
     </footer>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      mostrarMenu: false
+    };
+  },
+  methods: {
+    cerrarSesion() {
+      alert("Sesión cerrada");
+      this.$router.push("/IniciarSesión");
+    }
+  }
+};
+</script>
 
 <style>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
@@ -62,10 +89,13 @@
 
 nav {
   margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 nav a {
-  margin: 0 10px;
   text-decoration: none;
   color: #000;
   font-weight: bold;
@@ -77,6 +107,57 @@ nav a {
   background-color: #006400;
   padding: 5px 10px;
   border-radius: 5px;
+}
+
+/* Iconos */
+.icon-link {
+  font-size: 1.4rem;
+  display: inline-block;
+  line-height: 1.4;
+}
+
+/* Dropdown usuario */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 2rem;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1rem;
+  font-weight: normal;
+  cursor: pointer;
+  text-decoration: none;
+  width: 100%;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #eee;
 }
 
 .footer {

@@ -8,7 +8,7 @@ from django.template import Template, Context
 from django.template.loader import get_template
 from django.shortcuts import render
 from .models import Musician, Album
-from .serializers import PersonaSerializer, PersonSerializer
+from .serializers import PersonaSerializer, PersonSerializer, AlbumSerializer, MusicianSerializer
 from .models import Person
 
 from rest_framework import status
@@ -17,6 +17,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import mixins
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+
+
 
 
 # Create your views here.
@@ -271,4 +274,22 @@ class PersonList(generics.ListCreateAPIView):
 class PersonDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
+
+class MusicianList (generics.ListCreateAPIView):
+    queryset = Musician.objects.all()
+    serializer_class = MusicianSerializer
+
+class MusicianDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Musician.objects.all()
+    serializer_class = MusicianSerializer
+
+class AlbumList (generics.ListCreateAPIView):
+    queryset = Album.objects.all()
+    serializer_class = AlbumSerializer
+    permission_classes = (IsAuthenticated,)
+
+class AlbumDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Album.objects.all()
+    serializer_class = AlbumSerializer
+    permission_classes = (IsAuthenticated,)
 

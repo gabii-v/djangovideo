@@ -19,7 +19,7 @@ class Musician(models.Model):
         return f"{self.first_name} {self.last_name} ({self.instrument})"
 
 class Album(models.Model):
-    artist = models.ForeignKey(Musician, on_delete=models.CASCADE)
+    artist = models.ForeignKey(Musician, on_delete=models.CASCADE, related_name="albums")
     name = models.CharField(max_length=100)
     release_date = models.DateField()
     num_stars = models.IntegerField()

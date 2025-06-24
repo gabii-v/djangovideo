@@ -1,6 +1,6 @@
 <template>
     <section class="tienda">
-        <h2 class="titulo">Nuestra Tienda - Página en construcción</h2>
+        <h2 class="titulo">Tienda</h2>
 
         <!-- Filtros -->
         <div class="filtros">
@@ -48,7 +48,7 @@
                     <p class="precio">${{ producto.precio }}</p>
                     <small>{{ producto.condicion }} - {{ producto.estado }}</small>
                     <div class="boton-mensaje-container">
-                        <button class="btn-mensaje" @click="enviarMensaje(producto)">
+                        <button class="btn-mensaje" @click="abrirModal(producto)">
                             📩 Enviar mensaje al vendedor
                         </button>
                     </div>
@@ -57,6 +57,31 @@
         </div>
         <div v-else class="no-resultados">
             <p>No hay productos que coincidan con los filtros seleccionados.</p>
+        </div>
+
+        <!-- Modal para enviar mensaje -->
+        <div v-if="mostrarModal" class="modal-overlay" @click.self="cerrarModal">
+            <div class="modal-content">
+                <h3>Enviar mensaje a vendedor: <br><small>{{ productoSeleccionado.nombre }}</small></h3>
+
+                <label>Mensajes rápidos:</label>
+                <select v-model="mensajeSeleccionado" @change="actualizarMensaje">
+                    <option disabled value="">-- Seleccione un mensaje --</option>
+                    <option>Hola. ¿Sigue estando disponible?</option>
+                    <option>¿Podrías darme más detalles?</option>
+                    <option>¿Aceptas cambio?</option>
+                    <option>Estoy interesado, ¿cómo puedo pagar?</option>
+                </select>
+
+                <label for="mensajePersonalizado" style="margin-top: 1rem;">O escriba su mensaje:</label>
+                <textarea id="mensajePersonalizado" v-model="mensaje" rows="4"
+                    placeholder="Escribe tu mensaje aquí..."></textarea>
+
+                <div class="modal-botones">
+                    <button @click="enviarMensaje">Enviar</button>
+                    <button @click="cerrarModal" class="btn-cancelar">Cancelar</button>
+                </div>
+            </div>
         </div>
     </section>
 </template>
@@ -77,7 +102,11 @@ export default {
                 { nombre: 'Lámpara LED', categoria: 'Hogar', precio: 4300, condicion: 'Nuevo', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' },
                 { nombre: 'Pantalón jeans', categoria: 'Ropa', precio: 6200, condicion: 'Usado', estado: 'Próximamente', imagen: 'https://via.placeholder.com/150' },
                 { nombre: 'Auriculares bluetooth', categoria: 'Electrónica', precio: 7800, condicion: 'Nuevo', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' }
-            ]
+            ],
+            mostrarModal: false,
+            productoSeleccionado: null,
+            mensajeSeleccionado: '',
+            mensaje: ''
         };
     },
     computed: {
@@ -98,8 +127,28 @@ export default {
             this.condicionSeleccionada = '';
             this.estadoSeleccionado = '';
         },
-        enviarMensaje(producto) {
-            alert(`Función simulada para enviar mensaje sobre: ${producto.nombre}`);
+        abrirModal(producto) {
+            this.productoSeleccionado = producto;
+            this.mostrarModal = true;
+            this.mensajeSeleccionado = '';
+            this.mensaje = '';
+        },
+        cerrarModal() {
+            this.mostrarModal = false;
+            this.productoSeleccionado = null;
+        },
+        actualizarMensaje() {
+            if (this.mensajeSeleccionado) {
+                this.mensaje = this.mensajeSeleccionado;
+            }
+        },
+        enviarMensaje() {
+            if (!this.mensaje.trim()) {
+                alert('Por favor, escriba un mensaje antes de enviar.');
+                return;
+            }
+            alert(`Mensaje enviado para "${this.productoSeleccionado.nombre}":\n\n${this.mensaje}`);
+            this.cerrarModal();
         }
     }
 };
@@ -243,5 +292,93 @@ select:focus {
 
 .btn-mensaje:hover {
     background-color: #004d00;
+}
+
+/* Modal estilos */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+    margin-bottom: 1rem;
+    color: #006400;
+}
+
+.modal-content label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #006400;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #333;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.modal-content select:focus,
+.modal-content textarea:focus {
+    border-color: #228B22;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 100, 0, 0.3);
+}
+
+.modal-botones {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.modal-botones button {
+    padding: 0.5rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-botones button:first-child {
+    background-color: #006400;
+    color: white;
+}
+
+.modal-botones button:first-child:hover {
+    background-color: #004d00;
+}
+
+.modal-botones .btn-cancelar {
+    background-color: #ccc;
+    color: #333;
+}
+
+.modal-botones .btn-cancelar:hover {
+    background-color: #aaa;
 }
 </style>
