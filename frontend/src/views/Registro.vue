@@ -62,6 +62,8 @@
 </template>
 
 <script>
+import { registerUser } from '@/api/usuarios';
+
 export default {
     name: "RegistroUsuario",
     data() {
@@ -78,14 +80,26 @@ export default {
         };
     },
     methods: {
-        RegistroUsuario() {
+        async RegistroUsuario() {
             if (this.form.password !== this.form.confirmarPassword) {
                 alert("Las contraseñas no coinciden");
                 return;
             }
-            console.log("Datos enviados:", this.form);
-            alert("¡Registro enviado (simulado)!");
-            this.$router.push("/IniciarSesión");
+
+            try {
+                await registerUser({
+                    username: this.form.nombre,  // usamos 'nombre' como username
+                    email: this.form.email,
+                    password: this.form.password
+                });
+
+                alert("Cuenta creada con éxito. Ahora podés iniciar sesión.");
+                this.$router.push("/IniciarSesión");
+
+            } catch (error) {
+                console.error(error);
+                alert("Error al registrarse. Verificá los datos o probá con otro email.");
+            }
         },
         volverLogin() {
             this.$router.push("/IniciarSesión");
@@ -93,6 +107,7 @@ export default {
     },
 };
 </script>
+
 
 <style scoped>
 .registro {

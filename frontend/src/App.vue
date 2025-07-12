@@ -8,11 +8,16 @@
         <router-link to="/tienda">Tienda</router-link>
         <router-link to="/contacto">Contacto</router-link>
         <router-link to="/IniciarSesión">MiCuenta</router-link>
-        <router-link to="/mensajes" class="icon-link">💬</router-link>
-        <router-link to="/mis-compras" class="icon-link">🛒</router-link>
+
+        <!-- Íconos protegidos -->
+        <router-link v-if="isLoggedIn" to="/mensajes" class="icon-link">💬</router-link>
+        <button v-else @click="alertaLogin" class="icon-link">💬</button>
+
+        <router-link v-if="isLoggedIn" to="/mis-compras" class="icon-link">🛒</router-link>
+        <button v-else @click="alertaLogin" class="icon-link">🛒</button>
 
         <!-- Menú desplegable de usuario -->
-        <div class="dropdown" @mouseleave="mostrarMenu = false">
+        <div class="dropdown" @mouseleave="mostrarMenu = false" v-if="isLoggedIn">
           <button @click="mostrarMenu = !mostrarMenu" class="dropdown-btn icon-link" aria-label="Usuario">
             👤
           </button>
@@ -45,21 +50,37 @@
   </div>
 </template>
 
+
 <script>
+import { useUserStore } from '@/stores/user';
+import { computed, ref } from 'vue';
+
 export default {
-  data() {
-    return {
-      mostrarMenu: false
-    };
-  },
-  methods: {
-    cerrarSesion() {
+  setup() {
+    const userStore = useUserStore();
+    const isLoggedIn = computed(() => userStore.isLoggedIn);
+    const mostrarMenu = ref(false);
+
+    const cerrarSesion = () => {
+      userStore.logout();
       alert("Sesión cerrada");
-      this.$router.push("/IniciarSesión");
-    }
+      window.location.href = "/IniciarSesión";
+    };
+
+    const alertaLogin = () => {
+      alert("Necesitás iniciar sesión para acceder a esta función.");
+    };
+
+    return {
+      isLoggedIn,
+      mostrarMenu,
+      cerrarSesion,
+      alertaLogin
+    };
   }
 };
 </script>
+
 
 <style>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');

@@ -1,6 +1,6 @@
 # market/urls.py
 
-from django.urls import path
+from django.urls import path, include
 from .views import (
     CategoriaListCreate, CategoriaDetail,
     EstadoListCreate, EstadoDetail,
@@ -8,6 +8,15 @@ from .views import (
     ArticuloListCreate, ArticuloDetail,
     MensajeListCreate, MensajeDetail,
 )
+from .views import RegisterView
+from .views import UsuarioAutenticadoView
+from .views import PerfilUsuarioView
+
+from rest_framework.routers import DefaultRouter
+from .views import CategoriaViewSet
+
+router = DefaultRouter()
+router.register(r'categorias', CategoriaViewSet)
 
 urlpatterns = [
     # Categorías
@@ -29,4 +38,12 @@ urlpatterns = [
     # Mensajes
     path('mensajes/', MensajeListCreate.as_view(), name='mensaje-list'),
     path('mensajes/<int:pk>/', MensajeDetail.as_view(), name='mensaje-detail'),
+
+    path('auth/register/', RegisterView.as_view(), name='register'),
+
+    path('usuarios/me/', UsuarioAutenticadoView.as_view(), name='usuario-me'),
+
+    path('usuarios/perfil/', PerfilUsuarioView.as_view(), name='perfil-usuario'),
+
+    path('api/', include(router.urls)),
 ]

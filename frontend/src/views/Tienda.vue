@@ -2,33 +2,42 @@
     <section class="tienda">
         <h2 class="titulo">Tienda</h2>
 
+        <!-- Botón para publicar artículo -->
+        <div class="publicar-articulo">
+            <button @click="irAPublicarArticulo" class="btn-publicar">
+                📤 Publicar artículo
+            </button>
+        </div>
+
         <!-- Filtros -->
         <div class="filtros">
             <div class="filtro">
                 <label for="categoria">Categoría:</label>
                 <select id="categoria" v-model="categoriaSeleccionada">
                     <option disabled value="" style="color: gray;">-- Seleccione una categoría --</option>
-                    <option v-for="categoria in categorias" :key="categoria">{{ categoria }}</option>
+                    <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id" >{{ categoria.nombre }}</option>
                 </select>
             </div>
 
+            <!-- CONDICIÓN -->
             <div class="filtro">
                 <label for="condicion">Condición:</label>
                 <select id="condicion" v-model="condicionSeleccionada">
                     <option disabled value="" style="color: gray;">-- Seleccione la condición --</option>
-                    <option>Nuevo</option>
-                    <option>Usado</option>
-                    <option>Reacondicionado</option>
+                    <option v-for="cond in condiciones" :key="cond.id" :value="cond.id">
+                    {{ cond.descripcion }}
+                    </option>
                 </select>
             </div>
 
+            <!-- ESTADO -->
             <div class="filtro">
                 <label for="estado">Estado:</label>
                 <select id="estado" v-model="estadoSeleccionado">
                     <option disabled value="" style="color: gray;">-- Seleccione el estado --</option>
-                    <option>Disponible</option>
-                    <option>Sin stock</option>
-                    <option>Próximamente</option>
+                    <option v-for="est in estados" :key="est.id" :value="est.id">
+                    {{ est.descripcion }}
+                    </option>
                 </select>
             </div>
         </div>
@@ -42,11 +51,12 @@
         <div v-if="productosFiltrados.length" class="productos">
             <h3>Resultados:</h3>
             <div class="grid">
-                <div class="producto" v-for="producto in productosFiltrados" :key="producto.nombre">
-                    <img :src="producto.imagen" :alt="producto.nombre" />
-                    <h4>{{ producto.nombre }}</h4>
-                    <p class="precio">${{ producto.precio }}</p>
-                    <small>{{ producto.condicion }} - {{ producto.estado }}</small>
+                <div class="producto" v-for="producto in productosFiltrados" :key="producto.id">
+                    <img :src="producto.imagen || 'https://via.placeholder.com/150'" :alt="producto.titulo" /> 
+                    <!--<img :src="producto.imagen || require('@/assets/default.jpg')" />-->
+                    <h4>{{ producto.titulo }}</h4>
+                    <p class="precio">${{ producto.precio || 'N/A' }}</p>
+                    <small>{{ producto.condicion.descripcion }} - {{ producto.estado.descripcion }}</small>
                     <div class="boton-mensaje-container">
                         <button class="btn-mensaje" @click="abrirModal(producto)">
                             📩 Enviar mensaje al vendedor
@@ -62,7 +72,7 @@
         <!-- Modal para enviar mensaje -->
         <div v-if="mostrarModal" class="modal-overlay" @click.self="cerrarModal">
             <div class="modal-content">
-                <h3>Enviar mensaje a vendedor: <br><small>{{ productoSeleccionado.nombre }}</small></h3>
+                <h3>Enviar mensaje a vendedor: <br><small>{{ productoSeleccionado.titulo }}</small></h3>
 
                 <label>Mensajes rápidos:</label>
                 <select v-model="mensajeSeleccionado" @change="actualizarMensaje">
@@ -87,6 +97,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+import { useUserStore } from '@/stores/user';
+
 export default {
     name: 'PaginaTienda',
     data() {
@@ -94,15 +107,10 @@ export default {
             categoriaSeleccionada: '',
             condicionSeleccionada: '',
             estadoSeleccionado: '',
-            categorias: ['Ropa', 'Electrónica', 'Hogar', 'Deportes'],
-            productos: [
-                { nombre: 'Remera básica', categoria: 'Ropa', precio: 2500, condicion: 'Nuevo', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' },
-                { nombre: 'Zapatillas running', categoria: 'Deportes', precio: 8500, condicion: 'Usado', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' },
-                { nombre: 'Smartphone', categoria: 'Electrónica', precio: 120000, condicion: 'Reacondicionado', estado: 'Sin stock', imagen: 'https://via.placeholder.com/150' },
-                { nombre: 'Lámpara LED', categoria: 'Hogar', precio: 4300, condicion: 'Nuevo', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' },
-                { nombre: 'Pantalón jeans', categoria: 'Ropa', precio: 6200, condicion: 'Usado', estado: 'Próximamente', imagen: 'https://via.placeholder.com/150' },
-                { nombre: 'Auriculares bluetooth', categoria: 'Electrónica', precio: 7800, condicion: 'Nuevo', estado: 'Disponible', imagen: 'https://via.placeholder.com/150' }
-            ],
+            categorias: [],
+            condiciones: [],   
+            estados: [],       
+            productos: [],
             mostrarModal: false,
             productoSeleccionado: null,
             mensajeSeleccionado: '',
@@ -112,22 +120,67 @@ export default {
     computed: {
         productosFiltrados() {
             return this.productos.filter(producto =>
-                (!this.categoriaSeleccionada || producto.categoria === this.categoriaSeleccionada) &&
-                (!this.condicionSeleccionada || producto.condicion === this.condicionSeleccionada) &&
-                (!this.estadoSeleccionado || producto.estado === this.estadoSeleccionado)
+                (!this.categoriaSeleccionada || producto.categoria.id == this.categoriaSeleccionada) &&
+                (!this.condicionSeleccionada || producto.condicion.id == this.condicionSeleccionada) &&
+                (!this.estadoSeleccionada || producto.estado.id == this.estadoSeleccionada)
+
+
             );
         },
         hayFiltrosActivos() {
             return this.categoriaSeleccionada || this.condicionSeleccionada || this.estadoSeleccionado;
         }
     },
+    mounted() {
+        this.cargarProductos();
+        this.cargarCategorias();
+        this.cargarCondiciones(); 
+        this.cargarEstados();     
+    },
     methods: {
+        async cargarProductos() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/articulos/');
+                this.productos = response.data;
+            } catch (error) {
+                console.error('Error al cargar productos', error);
+            }
+        },
+        async cargarCategorias() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/categorias/');
+                this.categorias = response.data;
+            } catch (error) {
+                console.error('Error al cargar categorías', error);
+            }
+        },
+        async cargarCondiciones() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/condiciones/');
+                this.condiciones = response.data;
+            } catch (error) {
+                console.error('Error al cargar condiciones', error);
+            }
+        },
+        async cargarEstados() {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/estados/');
+                this.estados = response.data;
+            } catch (error) {
+                console.error('Error al cargar estados', error);
+            }
+        },
         limpiarFiltros() {
             this.categoriaSeleccionada = '';
             this.condicionSeleccionada = '';
             this.estadoSeleccionado = '';
         },
         abrirModal(producto) {
+            const userStore = useUserStore();
+            if (!userStore.isLoggedIn) {
+                alert('Necesitás iniciar sesión para enviar mensajes.');
+                return;
+            }
             this.productoSeleccionado = producto;
             this.mostrarModal = true;
             this.mensajeSeleccionado = '';
@@ -142,13 +195,51 @@ export default {
                 this.mensaje = this.mensajeSeleccionado;
             }
         },
-        enviarMensaje() {
+        async enviarMensaje() {
             if (!this.mensaje.trim()) {
                 alert('Por favor, escriba un mensaje antes de enviar.');
                 return;
             }
-            alert(`Mensaje enviado para "${this.productoSeleccionado.nombre}":\n\n${this.mensaje}`);
-            this.cerrarModal();
+
+            try {
+                const userStore = useUserStore();
+                const token = userStore.token;
+
+                const payload = {
+                    receptor: this.productoSeleccionado.usuario.id,
+                    articulo: this.productoSeleccionado.id,
+                    contenido: this.mensaje
+                };
+
+                console.log('Payload:', payload);
+                await axios.post('http://127.0.0.1:8000/api/mensajes/', payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                alert('Mensaje enviado con éxito.');
+                this.cerrarModal();
+            } catch (error) {
+                console.error('Error al enviar mensaje:', error);
+                if (error.response && error.response.data) {
+                    // Mostramos el primer error devuelto por el backend
+                    const errores = error.response.data;
+                    const mensajeError = Object.values(errores).flat()[0]; // Extrae el primer mensaje
+                    alert(`Error: ${mensajeError}`);
+                } else {
+                    alert('Ocurrió un error al enviar el mensaje.');
+                }
+            }
+
+        },
+        irAPublicarArticulo() {
+            const userStore = useUserStore();
+            if (!userStore.isLoggedIn) {
+                alert('Necesitás iniciar sesión para publicar un artículo.');
+                return;
+            }
+            this.$router.push('/nuevo-articulo');
         }
     }
 };
@@ -380,5 +471,24 @@ select:focus {
 
 .modal-botones .btn-cancelar:hover {
     background-color: #aaa;
+}
+
+.publicar-articulo {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.btn-publicar {
+    background-color: #228B22;
+    color: white;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-publicar:hover {
+    background-color: #006400;
 }
 </style>

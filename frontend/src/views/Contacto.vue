@@ -1,7 +1,7 @@
 <template>
     <div class="contact-container">
         <h2>Contáctanos</h2>
-        <p>¿Tienes alguna pregunta o sugerencia? Completa el siguiente formulario y te responderemos lo antes posible.
+        <p>¿Tienes alguna pregunta o sugerencia? 
         </p>
 
         <form @submit.prevent="enviarFormulario">
@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import { useUserStore } from '@/stores/user';
+
 export default {
     name: 'PaginaContacto',
     data() {
@@ -45,19 +47,25 @@ export default {
     },
     methods: {
         enviarFormulario() {
-            // Por ahora solo mostramos los datos en consola
+            const userStore = useUserStore();
+
+            if (!userStore.isLoggedIn) {
+                alert('Debés iniciar sesión para enviar un mensaje.');
+                return;
+            }
+
+            // Si está logueado, enviamos el mensaje
             console.log("Formulario enviado:", this.form);
             alert("¡Gracias por tu mensaje! Nos pondremos en contacto pronto.");
 
-            // Reinicia el formulario
             this.form = {
                 nombre: '',
                 email: '',
                 asunto: '',
                 mensaje: ''
             };
-        }
     }
+}
 }
 </script>
 

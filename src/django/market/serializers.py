@@ -3,6 +3,8 @@
 from rest_framework import serializers
 from .models import Categoria, Estado, Condicion, Articulo, Mensaje
 from django.contrib.auth.models import User
+from .models import Perfil
+
 
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,6 +33,7 @@ class ArticuloSerializer(serializers.ModelSerializer):
             'id',
             'titulo',
             'descripcion',
+            'precio',
             'fecha_publicacion',
             'usuario',
             'usuario_username',
@@ -41,6 +44,8 @@ class ArticuloSerializer(serializers.ModelSerializer):
             'condicion',
             'condicion_descripcion',
         ]
+        read_only_fields = ['usuario', 'fecha_publicacion']
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,6 +63,7 @@ class ArticuloConRelacionesSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MensajeSerializer(serializers.ModelSerializer):
+    emisor = serializers.PrimaryKeyRelatedField(read_only=True)
     emisor_username = serializers.ReadOnlyField(source='emisor.username')
     receptor_username = serializers.ReadOnlyField(source='receptor.username')
     articulo_titulo = serializers.ReadOnlyField(source='articulo.titulo')
@@ -76,3 +82,30 @@ class MensajeSerializer(serializers.ModelSerializer):
             'fecha_envio',
         ]
 
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+
+    def create(self, validated_data):
+        user = User(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+    
+
+class PerfilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Perfil
+        fields = ['telefono', 'localidad', 'direccion', 'foto']
+
+class UsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+        # Podés agregar más campos personalizados si los tenés extendidos

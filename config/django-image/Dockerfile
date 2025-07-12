@@ -10,6 +10,9 @@ WORKDIR /usr/src/app
 
 RUN pip install --upgrade pip && pip install --upgrade setuptools
 
+RUN pip install Pillow
+
+
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt

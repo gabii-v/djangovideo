@@ -1,15 +1,10 @@
 <template>
     <section class="registro">
         <h2>Iniciar Sesión</h2>
-        <form @submit.prevent="registrarse">
+        <form @submit.prevent="iniciarSesion">
             <div class="campo">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" v-model="form.nombre" required />
-            </div>
-
-            <div class="campo">
-                <label for="email">Email:</label>
-                <input type="email" id="email" v-model="form.email" required />
+                <label for="username">Nombre de usuario:</label>
+                <input type="text" id="username" v-model="form.username" required />
             </div>
 
             <div class="campo">
@@ -26,28 +21,38 @@
     </section>
 </template>
 
-<script>
-export default {
-    name: 'PaginaInicioSesion',  // Nombre multi-word para evitar warning eslint
-    data() {
-        return {
-            form: {
-                nombre: '',
-                email: '',
-                password: ''
-            }
-        };
-    },
-    methods: {
-        registrarse() {
-            console.log('Datos enviados:', this.form);
-            alert('¡Inicio de sesión simulado!');
-        },
-        irARegistro() {
-            this.$router.push('/registro'); // Navega a la ruta '/registro'
-        }
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
+
+const form = ref({
+    username: '',
+    password: ''
+});
+
+const router = useRouter();
+const userStore = useUserStore();
+
+async function iniciarSesion() {
+    try {
+        // Usa 'nombre' como 'username'
+        await userStore.login({
+            username: form.value.username,
+            password: form.value.password
+        });
+
+        alert(`¡Inicio de sesión correcto para ${userStore.usuario.username}!`);
+        router.push('/dashboard');
+    } catch (error) {
+        console.error(error.response?.data || error.message);
+        alert('Error al iniciar sesión. Verificá tus datos.');
     }
-};
+}
+
+function irARegistro() {
+    router.push('/registro');
+}
 </script>
 
 <style scoped>

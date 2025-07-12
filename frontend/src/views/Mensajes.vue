@@ -8,35 +8,67 @@
 
         <ul v-else class="lista-mensajes">
             <li v-for="mensaje in mensajes" :key="mensaje.id" class="mensaje-item">
-                <strong>{{ mensaje.remitente }}</strong>
-                <p>{{ mensaje.texto }}</p>
-                <small>{{ mensaje.fecha }}</small>
+                <strong>
+                    {{ mensaje.emisor_username === userStore.usuario.username ? 'Yo' : mensaje.emisor_username }}
+                    → {{ mensaje.receptor_username }}
+                </strong>
+
+                <p><em>Artículo:</em> {{ mensaje.articulo_titulo }}</p>
+                <p>{{ mensaje.contenido }}</p>
+                <small>{{ new Date(mensaje.fecha_envio).toLocaleString() }}</small>
             </li>
         </ul>
     </section>
 </template>
 
 <script>
+import axios from 'axios';
+import { useUserStore } from '@/stores/user';
+
 export default {
     name: 'MisMensajes',
     data() {
         return {
-            mensajes: [
-                {
-                    id: 1,
-                    remitente: 'Juan Pérez',
-                    texto: 'Hola, ¿todavía está disponible el producto?',
-                    fecha: '2025-05-28 14:32',
-                },
-                {
-                    id: 2,
-                    remitente: 'Ana Gómez',
-                    texto: 'Gracias por tu compra, ¿cómo fue tu experiencia?',
-                    fecha: '2025-05-27 10:15',
-                },
-            ],
+            mensajes: [],
+            userStore: useUserStore(),
         };
     },
+    async mounted() {
+        try {
+            const token = this.userStore.token;
+
+            // Esperar hasta que el usuario esté cargado (máximo 3 segundos)
+            let espera = 0;
+            while ((!this.userStore.usuario || !this.userStore.usuario.id) && espera < 3000) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                espera += 100;
+            }
+
+            if (!this.userStore.usuario || !this.userStore.usuario.id) {
+                console.warn('El usuario no está disponible en userStore después de esperar.');
+                return;
+            }
+
+            const userId = this.userStore.usuario.id;
+
+            const response = await axios.get('http://127.0.0.1:8000/api/mensajes/', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            console.log('Mensajes obtenidos:', response.data);
+
+            const mensajesFiltrados = response.data.filter(
+                (m) => m.receptor === userId || m.emisor === userId
+            );
+
+            this.mensajes = mensajesFiltrados;
+
+        } catch (error) {
+            console.error('Error al cargar los mensajes:', error);
+        }
+    }
 };
 </script>
 
