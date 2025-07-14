@@ -43,6 +43,8 @@ class ArticuloSerializer(serializers.ModelSerializer):
             'estado_descripcion',
             'condicion',
             'condicion_descripcion',
+            'esta_activo',
+            'vendido',
         ]
         read_only_fields = ['usuario', 'fecha_publicacion']
 
@@ -52,8 +54,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email']
 
+
 class ArticuloConRelacionesSerializer(serializers.ModelSerializer):
     usuario = UserSerializer(read_only=True)
+    comprador = UserSerializer(read_only=True)
     categoria = CategoriaSerializer(read_only=True)
     estado = EstadoSerializer(read_only=True)
     condicion = CondicionSerializer(read_only=True)

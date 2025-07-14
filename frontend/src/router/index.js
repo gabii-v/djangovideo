@@ -21,6 +21,8 @@ const routes = [
     { path: '/usuario', component: Usuario },
     { path: '/nuevo-articulo', name: 'NuevoArticulo', component: NuevoArticulo },
     /*{ path: '/registro', component: Registrarme }*/
+    { path: '/editar-articulo/:id', name: 'EditarArticulo', component: () => import('@/views/EditarArticulo.vue') }
+
 ]
 
 const router = createRouter({

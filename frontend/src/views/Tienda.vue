@@ -51,10 +51,11 @@
         <div v-if="productosFiltrados.length" class="productos">
             <h3>Resultados:</h3>
             <div class="grid">
-                <div class="producto" v-for="producto in productosFiltrados" :key="producto.id">
+                <div class="producto" v-for="producto in articulosActivos" :key="producto.id">    
                     <img :src="producto.imagen || 'https://via.placeholder.com/150'" :alt="producto.titulo" /> 
                     <!--<img :src="producto.imagen || require('@/assets/default.jpg')" />-->
                     <h4>{{ producto.titulo }}</h4>
+                    <p v-if="producto.vendido" class="vendido-etiqueta">VENDIDO</p>
                     <p class="precio">${{ producto.precio || 'N/A' }}</p>
                     <small>{{ producto.condicion.descripcion }} - {{ producto.estado.descripcion }}</small>
                     <div class="boton-mensaje-container">
@@ -122,14 +123,15 @@ export default {
             return this.productos.filter(producto =>
                 (!this.categoriaSeleccionada || producto.categoria.id == this.categoriaSeleccionada) &&
                 (!this.condicionSeleccionada || producto.condicion.id == this.condicionSeleccionada) &&
-                (!this.estadoSeleccionada || producto.estado.id == this.estadoSeleccionada)
-
-
+                (!this.estadoSeleccionado || producto.estado.id == this.estadoSeleccionado)
             );
         },
         hayFiltrosActivos() {
             return this.categoriaSeleccionada || this.condicionSeleccionada || this.estadoSeleccionado;
-        }
+        },
+        articulosActivos() {
+            return this.productos.filter(a => a.esta_activo === true);
+  }
     },
     mounted() {
         this.cargarProductos();
@@ -491,4 +493,13 @@ select:focus {
 .btn-publicar:hover {
     background-color: #006400;
 }
+
+.vendido-etiqueta {
+  color: red;
+  font-weight: bold;
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
 </style>

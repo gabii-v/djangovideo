@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class Categoria(models.Model):
@@ -32,7 +33,12 @@ class Articulo(models.Model):
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='articulos')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articulos')
+    comprador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='compras_realizadas')
+    esta_activo = models.BooleanField(default=True)
+
+    vendido = models.BooleanField(default=False)
+
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
     estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True)
     condicion = models.ForeignKey(Condicion, on_delete=models.SET_NULL, null=True)
