@@ -53,6 +53,12 @@ class Mensaje(models.Model):
     contenido = models.TextField()
     fecha_envio = models.DateTimeField(auto_now_add=True)
 
+    mensaje_padre = models.ForeignKey(
+        'self', null=True, blank=True,
+        related_name='respuestas',
+        on_delete=models.CASCADE
+    )
+
     def __str__(self):
         return f"De {self.emisor.username} a {self.receptor.username} sobre {self.articulo.titulo}"
 
@@ -66,3 +72,11 @@ class Perfil(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
+    
+class FotoArticulo(models.Model):
+    articulo = models.ForeignKey(Articulo, on_delete=models.CASCADE, related_name='fotos')
+    imagen = models.ImageField(upload_to='fotos_articulos/')
+    descripcion = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"Imagen de {self.articulo.titulo}"

@@ -51,9 +51,21 @@
         <div v-if="productosFiltrados.length" class="productos">
             <h3>Resultados:</h3>
             <div class="grid">
-                <div class="producto" v-for="producto in articulosActivos" :key="producto.id">    
-                    <img :src="producto.imagen || 'https://via.placeholder.com/150'" :alt="producto.titulo" /> 
-                    <!--<img :src="producto.imagen || require('@/assets/default.jpg')" />-->
+                <div class="producto" v-for="producto in articulosActivos" :key="producto.id">
+                    <!-- Botón círculo con + arriba derecha -->
+                    <button class="btn-circulo" @click="accionDelBoton(producto)">+</button>
+
+                    <img
+                        v-if="producto.fotos.length > 0"
+                        :src="producto.fotos[0].imagen"
+                        alt="Imagen del artículo"
+                    >
+                    <img
+                        v-else
+                        src="https://via.placeholder.com/150"
+                        alt="Imagen de ejemplo"
+                    >
+
                     <h4>{{ producto.titulo }}</h4>
                     <p v-if="producto.vendido" class="vendido-etiqueta">VENDIDO</p>
                     <p class="precio">${{ producto.precio || 'N/A' }}</p>
@@ -131,7 +143,7 @@ export default {
         },
         articulosActivos() {
             return this.productos.filter(a => a.esta_activo === true);
-  }
+        }
     },
     mounted() {
         this.cargarProductos();
@@ -225,9 +237,8 @@ export default {
             } catch (error) {
                 console.error('Error al enviar mensaje:', error);
                 if (error.response && error.response.data) {
-                    // Mostramos el primer error devuelto por el backend
                     const errores = error.response.data;
-                    const mensajeError = Object.values(errores).flat()[0]; // Extrae el primer mensaje
+                    const mensajeError = Object.values(errores).flat()[0];
                     alert(`Error: ${mensajeError}`);
                 } else {
                     alert('Ocurrió un error al enviar el mensaje.');
@@ -242,7 +253,10 @@ export default {
                 return;
             }
             this.$router.push('/nuevo-articulo');
-        }
+        },
+        accionDelBoton(producto) {
+            this.$router.push({ name: 'ArticuloDetalle', params: { id: producto.id } });
+        },
     }
 };
 </script>
@@ -290,7 +304,6 @@ select {
     border: 2px solid #006400;
     border-radius: 6px;
     background-color: #f0fff0;
-    /* verde muy claro */
     color: #333;
     transition: border-color 0.3s, background-color 0.3s;
 }
@@ -334,6 +347,7 @@ select:focus {
 }
 
 .producto {
+    position: relative; /* para posicionar el botón + */
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -500,6 +514,31 @@ select:focus {
   margin-top: 0.3rem;
   font-size: 0.9rem;
   text-transform: uppercase;
+}
+
+/* NUEVO: Botón círculo con + arriba derecha */
+.btn-circulo {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background-color: #228B22;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 28px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-circulo:hover {
+    background-color: #006400;
 }
 
 </style>

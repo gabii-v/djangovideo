@@ -6,6 +6,8 @@ services:
       context: ./config/django-image
     volumes:
       - ./src/django:/usr/src/app:delegated
+      - ./src/django/media:/usr/src/app/media
+
 
     environment:
       DB_HOST: ${DB_HOST}

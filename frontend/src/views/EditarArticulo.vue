@@ -1,170 +1,85 @@
 <template>
-  <section class="editar-articulo">
-    <h2>Editar Artículo</h2>
-
-    <form @submit.prevent="guardarCambios">
-      <label for="titulo">Título:</label>
-      <input type="text" id="titulo" v-model="articulo.titulo" required>
-
-      <label for="descripcion">Descripción:</label>
-      <textarea id="descripcion" v-model="articulo.descripcion" rows="4"></textarea>
-
-      <label for="precio">Precio:</label>
-      <input type="number" id="precio" v-model="articulo.precio" required>
-
-      <label for="categoria">Categoría:</label>
-      <select id="categoria" v-model="articulo.categoria">
-        <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
-      </select>
-
-      <label for="condicion">Condición:</label>
-      <select id="condicion" v-model="articulo.condicion">
-        <option v-for="cond in condiciones" :key="cond.id" :value="cond.id">{{ cond.descripcion }}</option>
-      </select>
-
-      <label for="estado">Estado:</label>
-      <select id="estado" v-model="articulo.estado">
-        <option v-for="est in estados" :key="est.id" :value="est.id">{{ est.descripcion }}</option>
-      </select>
-
-      <label for="imagen">URL de Imagen:</label>
-      <input type="text" id="imagen" v-model="articulo.imagen">
-
-      <div class="acciones">
-        <button type="submit">💾 Guardar</button>
-        <button type="button" @click="$router.back()">Cancelar</button>
+  <div class="detalle-container" v-if="articulo && Object.keys(articulo).length > 0">
+    <div class="imagenes">
+      <img :src="fotos[fotoActual]" alt="Foto del artículo" />
+      <div class="controles">
+        <button @click="anterior" :disabled="fotoActual === 0">⬅️</button>
+        <button @click="siguiente" :disabled="fotoActual === fotos.length - 1">➡️</button>
       </div>
-    </form>
-  </section>
+    </div>
+    <div class="informacion">
+      <h2>{{ articulo.titulo }}</h2>
+      <p><strong>Vendedor:</strong> {{ articulo.usuario?.username || 'Desconocido' }}</p>
+      <p><strong>Descripción:</strong> {{ articulo.descripcion }}</p>
+      <p><strong>Precio:</strong> ${{ articulo.precio }}</p>
+      <button @click="enviarMensaje">Enviar mensaje al vendedor</button>
+    </div>
+  </div>
+
+  <div v-else>
+    <p>Cargando detalles del artículo...</p>
+  </div>
 </template>
 
 <script>
 import axios from 'axios';
-import { useUserStore } from '@/stores/user';
+import { useRoute } from 'vue-router';
+import { ref } from 'vue';
 
 export default {
-  name: 'EditarArticulo',
-  data() {
-    return {
-      articulo: {
-        titulo: '',
-        descripcion: '',
-        precio: 0,
-        categoria: '',
-        condicion: '',
-        estado: '',
-        imagen: ''
-      },
-      categorias: [],
-      condiciones: [],
-      estados: []
+  name: 'ArticuloDetalle',
+  setup() {
+    const route = useRoute();
+    const id = route.params.id;
+
+    const articulo = ref({});
+    const fotos = ref([]);
+    const fotoActual = ref(0);
+
+    axios.get(`http://127.0.0.1:8000/api/articulos/${id}/`).then(res => {
+      articulo.value = res.data;
+      fotos.value = res.data.fotos || [];
+    }).catch(error => {
+      console.error("Error al cargar el artículo:", error);
+    });
+
+    const anterior = () => {
+      if (fotoActual.value > 0) fotoActual.value--;
     };
-  },
-  async created() {
-    const token = useUserStore().token;
-    const id = this.$route.params.id;
 
-    try {
-      const [articuloRes, categoriasRes, condicionesRes, estadosRes] = await Promise.all([
-        axios.get(`http://127.0.0.1:8000/api/articulos/${id}/`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`http://127.0.0.1:8000/api/categorias/`),
-        axios.get(`http://127.0.0.1:8000/api/condiciones/`),
-        axios.get(`http://127.0.0.1:8000/api/estados/`)
-      ]);
+    const siguiente = () => {
+      if (fotoActual.value < fotos.value.length - 1) fotoActual.value++;
+    };
 
-      this.articulo = {
-        ...articuloRes.data,
-        categoria: articuloRes.data.categoria.id,
-        condicion: articuloRes.data.condicion.id,
-        estado: articuloRes.data.estado.id
-      };
-      this.categorias = categoriasRes.data;
-      this.condiciones = condicionesRes.data;
-      this.estados = estadosRes.data;
+    const enviarMensaje = () => {
+      alert("Acá iría la lógica para enviar el mensaje al vendedor.");
+    };
 
-    } catch (err) {
-      console.error('Error al cargar datos:', err);
-      alert('No se pudo cargar el artículo');
-    }
-  },
-  methods: {
-    async guardarCambios() {
-      const token = useUserStore().token;
-      const id = this.$route.params.id;
-
-      try {
-        await axios.patch(`http://127.0.0.1:8000/api/articulos/${id}/`, this.articulo, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        alert('Cambios guardados correctamente.');
-        this.$router.push('/mis-compras'); // o a donde quieras redirigir
-
-      } catch (error) {
-        console.error('Error al guardar cambios:', error);
-        alert('Error al guardar. Verifique los datos.');
-      }
-    }
+    return { articulo, fotos, fotoActual, anterior, siguiente, enviarMensaje };
   }
 };
 </script>
 
 <style scoped>
-.editar-articulo {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #f9fff9;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+.detalle-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
 }
-
-h2 {
-  color: #006400;
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-form {
+.imagenes {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
 }
-
-input, textarea, select {
-  padding: 0.6rem;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
+.imagenes img {
+  max-width: 100%;
+  height: auto;
 }
-
-input:focus, textarea:focus, select:focus {
-  border-color: #228B22;
-  outline: none;
-  box-shadow: 0 0 5px rgba(0, 100, 0, 0.3);
+.controles {
+  margin-top: 10px;
 }
-
-.acciones {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.acciones button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.acciones button:first-child {
-  background-color: #006400;
-  color: white;
-}
-
-.acciones button:last-child {
-  background-color: #ccc;
+.informacion {
+  flex: 1;
 }
 </style>

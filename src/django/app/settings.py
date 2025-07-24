@@ -183,3 +183,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # AUTH_USER_MODEL = 'authapp.UsuarioPersonalizado'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

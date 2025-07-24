@@ -7,7 +7,7 @@
         </section>
 
         <section class="galeria-imagenes" ref="galeria" @mousemove="moverScroll" @mouseleave="detenerScroll">
-            <div v-for="(img, index) in imagenes.slice(0, 4)" :key="index" class="imagen-container"
+            <div v-for="(img, index) in imagenes.slice(0, 7)" :key="index" class="imagen-container"
                 :class="{ activo: index === indiceActivo }" @mouseenter="indiceActivo = index"
                 @mouseleave="indiceActivo = null">
                 <img :src="img" alt="Imagen del producto" />
@@ -36,46 +36,46 @@
 </template>
 
 <script>
+import img1 from "@/assets/img1.jpg";
+import img2 from "@/assets/img2.jpg";
+import img3 from "@/assets/img3.jpg";
+import img4 from "@/assets/img4.jpg";
+
 export default {
-    name: "PaginaInicio",
-    data() {
-        return {
-            imagenes: [
-                "https://via.placeholder.com/300x200?text=Producto+1",
-                "https://via.placeholder.com/300x200?text=Producto+2",
-                "https://via.placeholder.com/300x200?text=Producto+3",
-                "https://via.placeholder.com/300x200?text=Producto+4",
-                "https://via.placeholder.com/300x200?text=Producto+5",
-            ],
-            indiceActivo: null,
-            scrollInterval: null,
-        };
-    },
-    methods: {
-        moverScroll(event) {
-            const galeria = this.$refs.galeria;
-            const rect = galeria.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const ancho = galeria.clientWidth;
+  name: "PaginaInicio",
+  data() {
+    return {
+      imagenes: [img1, img2, img3, img4],
+      indiceActivo: null,
+      scrollInterval: null,
+    };
+  },
+  methods: {
+    moverScroll(event) {
+      const galeria = this.$refs.galeria;
+      const rect = galeria.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const ancho = galeria.clientWidth;
 
-            const porcentaje = mouseX / ancho;
-            const maxScroll = galeria.scrollWidth - galeria.clientWidth;
-            const scrollPos = porcentaje * maxScroll;
+      const porcentaje = mouseX / ancho;
+      const maxScroll = galeria.scrollWidth - galeria.clientWidth;
+      const scrollPos = porcentaje * maxScroll;
 
-            galeria.scrollTo({
-                left: scrollPos,
-                behavior: "smooth",
-            });
-        },
-        detenerScroll() {
-            // No hace nada
-        },
-        irATienda() {
-            this.$router.push("/tienda");
-        },
+      galeria.scrollTo({
+        left: scrollPos,
+        behavior: "smooth",
+      });
     },
+    detenerScroll() {
+      // No hace nada
+    },
+    irATienda() {
+      this.$router.push("/tienda");
+    },
+  },
 };
 </script>
+
 
 <style scoped>
 .inicio-container {

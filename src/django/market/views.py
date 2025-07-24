@@ -26,6 +26,12 @@ from .serializers import UsuarioSerializer  # Lo definimos abajo
 from rest_framework import viewsets
 
 
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import FotoArticuloSerializer
+
+from .models import FotoArticulo
+
+
 # -------- CATEGORIA --------
 class CategoriaListCreate(generics.ListCreateAPIView):
     queryset = Categoria.objects.all()
@@ -80,6 +86,11 @@ class ArticuloListCreate(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)
+        articulo = serializer.save(usuario=self.request.user)
+
+        fotos = self.request.FILES.getlist('fotos')  # 👈 mismo nombre que en Vue
+        for foto in fotos:
+            FotoArticulo.objects.create(articulo=articulo, imagen=foto)
 
 
 class ArticuloDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -173,3 +184,21 @@ class UsuarioMeView(APIView):
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+
+class FotoArticuloUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, format=None):
+        articulo_id = request.data.get('articulo')
+        imagen = request.FILES.get('imagen')
+        
+        if not articulo_id or not imagen:
+            return Response({'error': 'Faltan datos'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        foto = FotoArticulo.objects.create(articulo_id=articulo_id, imagen=imagen)
+        return Response(FotoArticuloSerializer(foto).data, status=status.HTTP_201_CREATED)
+
+
+class ArticuloViewSet(viewsets.ModelViewSet):
+    queryset = Articulo.objects.all()
+    serializer_class = ArticuloSerializer

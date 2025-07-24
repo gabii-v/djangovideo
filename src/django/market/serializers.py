@@ -1,7 +1,7 @@
 # market/serializers.py
 
 from rest_framework import serializers
-from .models import Categoria, Estado, Condicion, Articulo, Mensaje
+from .models import Categoria, Estado, Condicion, Articulo, Mensaje, FotoArticulo
 from django.contrib.auth.models import User
 from .models import Perfil
 
@@ -21,11 +21,17 @@ class CondicionSerializer(serializers.ModelSerializer):
         model = Condicion
         fields = '__all__'
 
+class FotoArticuloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FotoArticulo
+        fields = ['id', 'imagen']
+
 class ArticuloSerializer(serializers.ModelSerializer):
     usuario_username = serializers.ReadOnlyField(source='usuario.username')
     categoria_nombre = serializers.ReadOnlyField(source='categoria.nombre')
     estado_descripcion = serializers.ReadOnlyField(source='estado.descripcion')
     condicion_descripcion = serializers.ReadOnlyField(source='condicion.descripcion')
+    fotos = FotoArticuloSerializer(many=True, read_only=True)  # esto usa el related_name 'fotos'
 
     class Meta:
         model = Articulo
@@ -45,6 +51,7 @@ class ArticuloSerializer(serializers.ModelSerializer):
             'condicion_descripcion',
             'esta_activo',
             'vendido',
+            'fotos',
         ]
         read_only_fields = ['usuario', 'fecha_publicacion']
 
@@ -61,6 +68,7 @@ class ArticuloConRelacionesSerializer(serializers.ModelSerializer):
     categoria = CategoriaSerializer(read_only=True)
     estado = EstadoSerializer(read_only=True)
     condicion = CondicionSerializer(read_only=True)
+    fotos = FotoArticuloSerializer(many=True, read_only=True)
 
     class Meta:
         model = Articulo
@@ -68,9 +76,17 @@ class ArticuloConRelacionesSerializer(serializers.ModelSerializer):
 
 class MensajeSerializer(serializers.ModelSerializer):
     emisor = serializers.PrimaryKeyRelatedField(read_only=True)
+    receptor = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    mensaje_padre = serializers.PrimaryKeyRelatedField(
+        queryset=Mensaje.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     emisor_username = serializers.ReadOnlyField(source='emisor.username')
     receptor_username = serializers.ReadOnlyField(source='receptor.username')
     articulo_titulo = serializers.ReadOnlyField(source='articulo.titulo')
+    respuestas = serializers.SerializerMethodField()
 
     class Meta:
         model = Mensaje
@@ -84,7 +100,14 @@ class MensajeSerializer(serializers.ModelSerializer):
             'articulo_titulo',
             'contenido',
             'fecha_envio',
+            'mensaje_padre',     # <--- Ya editable
+            'respuestas',
         ]
+
+    def get_respuestas(self, obj):
+        respuestas = Mensaje.objects.filter(mensaje_padre=obj).order_by('fecha_envio')
+        return MensajeSerializer(respuestas, many=True).data
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -113,3 +136,4 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
         # Podés agregar más campos personalizados si los tenés extendidos
+

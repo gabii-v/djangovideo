@@ -14,6 +14,8 @@ from .views import PerfilUsuarioView
 
 from rest_framework.routers import DefaultRouter
 from .views import CategoriaViewSet
+from .views import FotoArticuloUploadView
+
 
 router = DefaultRouter()
 router.register(r'categorias', CategoriaViewSet)
@@ -46,4 +48,11 @@ urlpatterns = [
     path('usuarios/perfil/', PerfilUsuarioView.as_view(), name='perfil-usuario'),
 
     path('api/', include(router.urls)),
+
+    path('articulos/subir-foto/', FotoArticuloUploadView.as_view(), name='subir-foto-articulo'),
+
+
+    path('articulos/subir-foto/', FotoArticuloUploadView.as_view(), name='subir-foto'),
+
+
 ]
