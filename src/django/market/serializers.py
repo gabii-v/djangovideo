@@ -131,9 +131,17 @@ class PerfilSerializer(serializers.ModelSerializer):
         model = Perfil
         fields = ['telefono', 'localidad', 'direccion', 'foto']
 
+# class UsuarioSerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = User
+#        fields = ['username', 'email', 'first_name', 'last_name']
+#        # Podés agregar más campos personalizados si los tenés extendidos
+
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name']
-        # Podés agregar más campos personalizados si los tenés extendidos
-
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        extra_kwargs = {
+            'first_name': {'required': False, 'allow_blank': True},
+            'last_name': {'required': False, 'allow_blank': True},
+        }

@@ -23,7 +23,7 @@ const routes = [
     /*{ path: '/registro', component: Registrarme }*/
     { path: '/editar-articulo/:id', name: 'EditarArticulo', component: () => import('@/views/EditarArticulo.vue') },
 
-    { path: '/articulo/:id', name: 'ArticuloDetalle', component: () => import('../views/ArticuloDetalle.vue') }
+    { path: '/articulo/:id', name: 'ArticuloDetalle', component: () => import('../views/ArticuloDetalle.vue') },
 
 
 ]

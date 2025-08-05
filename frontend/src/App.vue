@@ -19,7 +19,7 @@
         <!-- Menú desplegable de usuario -->
         <div class="dropdown" @mouseleave="mostrarMenu = false" v-if="isLoggedIn">
           <button @click="mostrarMenu = !mostrarMenu" class="dropdown-btn icon-link" aria-label="Usuario">
-            👤
+            👤 
           </button>
           <div v-if="mostrarMenu" class="dropdown-menu">
             <router-link to="/usuario" @click="mostrarMenu = false">Información de Usuario</router-link>

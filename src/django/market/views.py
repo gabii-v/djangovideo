@@ -8,7 +8,6 @@ from .serializers import (
 )
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -30,6 +29,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import FotoArticuloSerializer
 
 from .models import FotoArticulo
+
 
 
 # -------- CATEGORIA --------
@@ -179,7 +179,7 @@ class UsuarioMeView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
